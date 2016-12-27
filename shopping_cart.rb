@@ -7,7 +7,7 @@ class ShoppingCart
 		@grand_total = 0
 		@list_item = []
 		@pcode=""
-     	@price_rule = {
+    	@price_rule = {
 			 "ult_small"  => {:code => "ult_small", :name => "Unlimited 1 GB", :price => 24.90},
      		 "ult_medium" => {:code => "ult_medium", :name => "Unlimited 2 GB", :price => 29.90},
      		 "ult_large"  => {:code => "ult_large", :name => "Unlimited 5 GB", :price => 44.90},
@@ -59,10 +59,10 @@ class ShoppingCart
 
  	# grand Total
 	def total		
-			if @pcode == "accepted"
-				@grand_total = (@grand_total - (@grand_total * 0.1) )
-			end			
-			puts "Grand Total purchased: $#{@grand_total.round(2)}"
+		if @pcode == "accepted"
+			@grand_total = (@grand_total - (@grand_total * 0.1) )
+		end			
+		puts "Grand Total purchased: $#{@grand_total.round(2)}"
 	end
-
 end
+
