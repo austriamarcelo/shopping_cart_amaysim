@@ -1,68 +1,88 @@
-#!/usr/bin/env ruby
+class ShoppingCart
 
-class ShoppingCart 
-
-	#initialize pricing rule
-	def initialize 
-		@grand_total = 0
-		@list_item = []
-		@pcode=""
-    	@price_rule = {
-			 "ult_small"  => {:code => "ult_small", :name => "Unlimited 1 GB", :price => 24.90},
-     		 "ult_medium" => {:code => "ult_medium", :name => "Unlimited 2 GB", :price => 29.90},
-     		 "ult_large"  => {:code => "ult_large", :name => "Unlimited 5 GB", :price => 44.90},
-     		 "1gb" 		  => {:code => "1gb", :name => "1 GB Data-pack", :price => 9.90}
-     		}	
+	def initialize
+		@add_item_from_user = Array.new
+		@promo_code = false
+		@total_purchased = 0
 	end
 
-	#adding item and promo code
-  	def add(item_code, promo_code=nil)
-  		if @price_rule.include?(item_code)
-			@list_item << @price_rule["#{item_code}"]
-			puts "Item added to cart #{item_code} => #{@price_rule["ult_small"][:name]}"
-			puts @list_item
-			unless promo_code.nil?
+	def products
+		{
+			"ult_small" => {"product_code" => "ult_small", "product_name" => "Unlimited 1GB", "price" => 24.90}, 
+		  	"ult_medium" => {"product_code" => "ult_medium", "product_name" => "Unlimited 2GB", "price" => 29.90},
+			"ult_large" => {"product_code" => "ult_large", "product_name" => "Unlimited 5GB", "price" => 44.90},
+			"1gb" => {"product_code" => "1gb", "product_name" => "1 GB Data-pack", "price" => 9.90}		   
+		} 
+	end
+
+	def add(product, promo_code = nil)
+		add_items(product,promo_code)
+	end
+
+	def total		
+		if @total_purchased > 0
+			if @promo_code
+				discount = @total_purchased * 0.1
+				@total_purchased = @total_purchased - discount
+			end
+
+			puts "Total price purchased: $#{@total_purchased.round(2)}"
+			return @total_purchased.round(2)
+		else
+			puts "Check Items first to see total purchase."
+			return @total_purchased.round(2)
+		end
+
+
+	end
+
+	def items		
+		grouped = @add_item_from_user.group_by {|x| x["product_name"]}		
+		grouped.map {|k,v| 	
+			total = 0		
+			price = v[0]["price"]
+			product_code = v[0]["product_code"]
+
+			v.map{|p| 
+				total = total + price				
+			}
+
+			
+			if(v.length > 2 && product_code == "ult_small")
+				deal = v.length / 3
+				discount = price * deal
+				total = total - discount
+			elsif(v.length > 3 && product_code == "ult_large")
+				new_price = 39.90
+				total = (new_price*v.length)
+			elsif(product_code == "ult_medium")
+				bundle_1gb = "with #{v.length} x 1 GB Data-pack free"
+			end
+
+			puts "Items Added: #{v.length} | #{k} #{bundle_1gb || ""}| Total Price: $#{total.round(2)}"
+			@total_purchased = (@total_purchased + total)
+		}
+	end
+
+	private
+
+	def add_items(product, promo_code = nil)
+		if products.include?(product)
+			@add_item_from_user << products[product]
+			puts "Item added to cart #{product} => #{products[product]['product_name']}"
+
+			unless(promo_code.nil?)
 				if promo_code == "I<3AMAYSIM"
-				   @pcode = "accepted"
-					puts "Promo Code applied."
+					@promo_code = true
+					puts "Promo Code will apply in total."
 				else
-					puts "Invalid Promo Code #{promo_code} entered"					
+					@promo_code = false
+					puts "Invalid Promo Code"					
 				end
 			end
 		else
-			puts "Invalid Item Code #{item_code} entered"
+			puts "Invalid Item Code #{product}"
 		end
- 	end
-
- 	# list of item
- 	def items
- 		cart = @list_item.group_by {|item| item[:name]} 
- 		cart.map {|k,v| 	
-			@total = 0		
-			price = v[0][:price]
-			code = v[0][:code]
-			v.map{|p| @total = @total + price}
-	
-			if(v.length > 2 && code == "ult_small")
-				disc = ((v.length / 3) * price)
-				@total = @total - disc
-			elsif(v.length > 3 && code == "ult_large")
-				new_price = 39.90
-				@total = (new_price * v.length)
-			elsif(code == "ult_medium")
-				bundle_1gb = "with #{v.length} x 1 GB Data-pack free"
-			end
-			@grand_total = @grand_total + @total
-			puts  "Items Added: #{v.length} | #{k} #{bundle_1gb || ""}| Total Price: $#{@total.round(2)}"
-			}
- 	end
-
- 	# grand Total
-	def total		
-		if @pcode == "accepted"
-			@grand_total = (@grand_total - (@grand_total * 0.1) )
-		end			
-		puts "Grand Total purchased: $#{@grand_total.round(2)}"
 	end
-end
 
+end
